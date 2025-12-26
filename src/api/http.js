@@ -1,8 +1,11 @@
 import axios from "axios";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
+// ✅ API URL depuis Netlify
+const API_URL = import.meta.env.VITE_API_URL;
+
 export const http = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: `${API_URL}/api`,
 });
 
 // ✅ attendre firebase user (une seule fois)
@@ -20,12 +23,12 @@ http.interceptors.request.use(
     const auth = getAuth();
     let user = auth.currentUser;
 
-    // ✅ si pas encore prêt, attendre
+    // ✅ attendre firebase
     if (!user) {
       user = await waitForUser(auth);
     }
 
-    // ✅ si user existe => mettre token
+    // ✅ ajouter token si connecté
     if (user) {
       const token = await user.getIdToken();
       config.headers.Authorization = `Bearer ${token}`;
@@ -33,7 +36,5 @@ http.interceptors.request.use(
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
