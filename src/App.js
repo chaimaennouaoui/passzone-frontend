@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./ui/theme.css";
 
 import { AuthProvider, useAuth } from "./auth/AuthProvider";
-import RequireAuth from "./auth/RequireAuth";
 import RequireAdmin from "./auth/RequireAdmin";
 import RequireFan from "./auth/RequireFan";
 
@@ -57,6 +56,7 @@ export default function App() {
             }
           />
 
+          {/* ADMIN */}
           <Route
             path="/admin"
             element={

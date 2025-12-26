@@ -1,8 +1,8 @@
 import axios from "axios";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
-// ✅ API URL depuis Netlify
-const API_URL = import.meta.env.VITE_API_URL;
+// ✅ API URL depuis Netlify (CRA)
+const API_URL = process.env.REACT_APP_API_URL;
 
 export const http = axios.create({
   baseURL: `${API_URL}/api`,
