@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { BackendApi } from "../api/backendApi";
 import { Modal } from "../ui/components";
+import emailjs from '@emailjs/browser';
 
 function fmt(iso) {
   if (!iso) return "—";
@@ -11,7 +12,6 @@ function fmt(iso) {
 export default function MyReservations() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [confirmCancel, setConfirmCancel] = useState(null);
   const [msg, setMsg] = useState("");
 
@@ -29,7 +29,24 @@ export default function MyReservations() {
   async function cancelNow() {
     try {
       setMsg("");
+      const reservationToCancel = list.find(r => r.id === confirmCancel);
       await BackendApi.cancel(confirmCancel);
+
+      // ✅ Envoi Email d'annulation via Variables d'Environnement
+      const cancelParams = {
+        ticket_code: reservationToCancel?.ticketCode,
+        zone_name: reservationToCancel?.fanZoneName,
+        match_name: reservationToCancel?.matchName
+      };
+
+      emailjs.send(
+        process.env.REACT_APP_EMAILJS_SERVICE_ID,
+        process.env.REACT_APP_EMAILJS_TEMPLATE_CANCEL,
+        cancelParams,
+        process.env.REACT_APP_EMAILJS_PUBLIC_KEY
+      ).then(() => console.log("Email d'annulation envoyé !"))
+       .catch((err) => console.error("Erreur EmailJS:", err));
+
       setConfirmCancel(null);
       await refresh();
     } catch (e) {
@@ -41,20 +58,7 @@ export default function MyReservations() {
     <div className="container">
       <div className="card">
         <div className="h1">Mes réservations</div>
-        <div className="p">Consulte l’historique et annule une réservation si tu veux.</div>
-
-        {msg && (
-          <div
-            className="badge"
-            style={{
-              marginTop: 10,
-              borderColor: "rgba(193,39,45,.35)",
-              background: "rgba(193,39,45,.10)",
-            }}
-          >
-            {msg}
-          </div>
-        )}
+        {msg && <div className="badge" style={{ marginTop: 10, background: "rgba(193,39,45,.10)" }}>{msg}</div>}
       </div>
 
       <div style={{ height: 12 }} />
@@ -73,7 +77,7 @@ export default function MyReservations() {
                   <th>Fan Zone</th>
                   <th>Match</th>
                   <th>Date</th>
-                  <th>Quantité</th>
+                  <th>Qté</th>
                   <th>Status</th>
                   <th>Action</th>
                 </tr>
@@ -81,44 +85,15 @@ export default function MyReservations() {
               <tbody>
                 {list.map((r) => (
                   <tr key={r.id}>
-                    <td>
-                      <span className="badge">{r.ticketCode || "—"}</span>
-                    </td>
-
-                    <td>
-                      <b>{r.fanZoneName}</b>
-                      <div className="small">📍 {r.city}</div>
-                    </td>
-
+                    <td><span className="badge">{r.ticketCode}</span></td>
+                    <td><b>{r.fanZoneName}</b></td>
                     <td>{r.matchName}</td>
                     <td>{fmt(r.startTime)}</td>
                     <td>{r.qty}</td>
-
+                    <td>{r.status}</td>
                     <td>
-                      <span
-                        className="badge"
-                        style={{
-                          borderColor:
-                            r.status === "CANCELED"
-                              ? "rgba(193,39,45,.35)"
-                              : "rgba(0,98,51,.35)",
-                          background:
-                            r.status === "CANCELED"
-                              ? "rgba(193,39,45,.08)"
-                              : "rgba(0,98,51,.08)",
-                        }}
-                      >
-                        {r.status}
-                      </span>
-                    </td>
-
-                    <td>
-                      {r.status === "CONFIRMED" ? (
-                        <button className="btn btnDanger" onClick={() => setConfirmCancel(r.id)}>
-                          Annuler
-                        </button>
-                      ) : (
-                        <span className="small">—</span>
+                      {r.status === "CONFIRMED" && (
+                        <button className="btn btnDanger" onClick={() => setConfirmCancel(r.id)}>Annuler</button>
                       )}
                     </td>
                   </tr>
@@ -131,20 +106,16 @@ export default function MyReservations() {
 
       {confirmCancel && (
         <Modal
-          title="Annuler la réservation ?"
+          title="Annuler ?"
           onClose={() => setConfirmCancel(null)}
           footer={
             <>
-              <button className="btn" onClick={() => setConfirmCancel(null)}>
-                Retour
-              </button>
-              <button className="btn btnDanger" onClick={cancelNow}>
-                Confirmer annulation
-              </button>
+              <button className="btn" onClick={() => setConfirmCancel(null)}>Retour</button>
+              <button className="btn btnDanger" onClick={cancelNow}>Confirmer</button>
             </>
           }
         >
-          <div className="p">L’annulation peut être limitée par une fenêtre (ex: 2h avant).</div>
+          <div className="p">Voulez-vous vraiment annuler cette réservation ?</div>
         </Modal>
       )}
     </div>
