@@ -326,7 +326,7 @@ export default function AdminDashboard() {
       {/* Modal création slot */}
       {openNewSlot && (
         <Modal
-          title="Créer un Match (Créneau)"
+          title="Créer un Match"
           onClose={() => setOpenNewSlot(false)}
           footer={
             <>

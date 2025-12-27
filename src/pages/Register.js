@@ -40,12 +40,12 @@ export default function Register() {
               className="input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="ex: chaima@gmail.com"
+              placeholder="example@gmail.com"
             />
           </div>
 
           <div>
-            <div className="small">Mot de passe (min 6)</div>
+            <div className="small">Mot de passe</div>
             <input
               className="input"
               type="password"
